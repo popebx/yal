@@ -13,6 +13,8 @@
 *.userprefs
 
 # Build results
+.*/
+[Bb]uild/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -84,9 +86,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
-
-# Chutzpah Test files
-_Chutzpah*
+compile_commands.json
 
 # Visual C++ cache files
 ipch/
