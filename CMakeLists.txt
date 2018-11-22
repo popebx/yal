@@ -6,8 +6,12 @@ option(BUILD_SHARED "Build ${PROJECT_NAME} as Shared Library or Static Library" 
 option(BUILD_EXAMPLE "Build Examples" ON)
 option(BUILD_TESTS "Build Tests" ON)
 
-set(${PROJECT_NAME}_src include/yal/yal.hpp include/yal/yal_singleton.hpp include/yal/yal_c_iface.h include/yal/yal_export.h
-                        src/yal.cpp         src/yal_singleton.cpp         src/yal_c_iface.cpp)
+set(${PROJECT_NAME}_src include/yal/yal_export.h include/yal/sink.h 
+                        include/yal/yal.hpp                 src/yal.cpp         
+                        include/yal/yal_singleton.hpp       src/yal_singleton.cpp                                 
+                        include/yal/sinks/console_sink.h    src/sinks/console_sink.cpp
+                        include/yal/sinks/debug_sink.h      src/sinks/debug_sink.cpp
+)
 set(${PROJECT_NAME}_example_src_singleton example/yal_singleton.cpp)
 set(${PROJECT_NAME}_example_src example/yal.cpp)
 set(${PROJECT_NAME}_tests_src tests/yal.cpp)

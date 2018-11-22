@@ -1,39 +1,108 @@
 #ifndef _yal_singleton_h_INClude
 #define _yal_singleton_h_INClude
+#include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <yal/yal.hpp>
 #include <yal/yal_export.h>
 
 namespace yalog {
 
-class EXPORT_YAL_API yal_singleton {
+/**
+ * @brief Creates a new Logger with an log level and a sink
+ *
+ * @param name Name of the logger, which has to be unique otherwise this method
+ * will throw!
+ * @param new_sink New sink which will be owned by this logger
+ * @param level Log Level which this logger should take
+ * @return yalog::logger& Logger Object which can be used directly for logging.
+ * You can get the reference from yal_manager.
+ */
+yalog::logger &make_logger(const std::string_view &name, sink &&new_sink,
+                           const log_level level);
+
+/**
+ * @brief Singleton Logger Manager. It will hold all logger created during the
+ * lifetime of the application.
+ *
+ */
+class EXPORT_YAL_API yal_manager {
+  friend yalog::logger &make_logger(const std::string_view &, sink &&,
+                                    const log_level);
+
 private:
-  yal_singleton() = default;
-  ~yal_singleton() = default;
-  logger m_log_instance{log_level::DEBUG};
+  yal_manager() = default;
+  ~yal_manager() = default;
+  std::unordered_map<std::string, yalog::logger> m_logger;
+  yalog::logger *standard_logger;
+  logger &add_new_logger(const std::string_view &name, sink &&new_sink,
+                         const log_level level);
 
 public:
-  yal_singleton(const yal_singleton &) = delete;
-  yal_singleton(yal_singleton &&) = delete;
-  yal_singleton &operator=(const yal_singleton &) = delete;
-  yal_singleton &operator=(yal_singleton &&) = delete;
-  static yal_singleton &instance() {
-    static yal_singleton log_instance;
+#pragma region Singleton
+  yal_manager(const yal_manager &) = delete;
+  yal_manager(yal_manager &&) = delete;
+  yal_manager &operator=(const yal_manager &) = delete;
+  yal_manager &operator=(yal_manager &&) = delete;
+  /**
+   * @brief Returns a Instance to the Manager.
+   *
+   * @return yal_manager& Only Instance of the manager
+   */
+  static yal_manager &instance() {
+    static yal_manager log_instance;
     return log_instance;
   }
-  static yal_singleton &warn() { return yal_singleton::instance(); }
-  static yal_singleton &dbg() { return yal_singleton::instance(); }
-  static yal_singleton &err() { return yal_singleton::instance(); }
-  yal_singleton &operator<<(const std::string_view &arg);
-  template <typename value_type,
-            typename =
-                std::enable_if_t<!std::is_same_v<std::string_view, value_type>>>
-  yal_singleton &operator<<(value_type arg) {
-    this->m_log_instance << arg;
-    return yal_singleton::instance();
+#pragma endregion
+  /**
+   * @brief Looks up a logger and returns it otherwise it will throw a
+   * std::runtime_error
+   *
+   * @todo Subscript Operator?
+   * @todo const? Threading?
+   *
+   * @param name Name of the Logger
+   * @return logger& Instance of the logger
+   */
+  logger &operator()(std::string_view name) {
+    // TODO: Move to cpp
+    auto result = std::find_if(
+        this->m_logger.begin(), this->m_logger.end(),
+        [&name](const auto &entry) { return name == entry.first; });
+    if (result == this->m_logger.end()) {
+      throw std::runtime_error("Logger not found");
+    }
+    return result->second;
+  }
+  /**
+   * @brief Returns a standard logger if is set otherwise will throw a
+   * std::runtime_error
+   *
+   * @todo if i move (std::string_view) to subscript what happends here? std()?
+   *
+   * @return logger& Instance of the standard logger
+   */
+  logger &operator()() {
+    // TODO: move to cpp
+    if (this->standard_logger != nullptr) {
+      return *this->standard_logger;
+    }
+    // TODO: Set standard logger to nullptr?
+    throw std::runtime_error("Logger not found");
+  }
+
+  /**
+   * @brief Set the default logger by name. It will throw an std::runtime_error
+   * if the name isn't found
+   *
+   * @param name Name of the logger
+   */
+  void set_default_logger(std::string_view name) {
+    // TODO: Move to cpp
+    this->standard_logger = &this->operator()(name);
   }
 };
 
 } // namespace yalog
-using yal = yalog::yal_singleton;
+auto &ylog = yalog::yal_manager::instance();
 #endif //_yal_singleton_h_INClude
