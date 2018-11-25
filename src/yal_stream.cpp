@@ -5,10 +5,12 @@
 namespace yalog {
 
 #if defined(_WIN32) || defined(_WIN64)
+
 using wchar_type = char16_t;
 using wchar_string = std::u16string;
 using wchar_string_view = std::u16string_view;
 #else
+
 using wchar_type = char32_t;
 using wchar_string = std::u32string;
 using wchar_string_view = std::u32string_view;
@@ -81,22 +83,25 @@ void ystream::append_message(const std::u32string_view& new_message, char_enc en
 #pragma endregion
 #pragma region Overload set operator<<
 ystream& ystream::operator<<(const std::string_view& msg) {
-  this->print(msg, char_enc::codepage1252);
+  this->print(msg, this->m_current_encoding.value_or(char_enc::ascii));
   return *this;
 }
 
 ystream& ystream::operator<<(const std::u16string_view& msg) {
-  this->operator<<(char_enc::utf16);
   this->print(msg);
   return *this;
 }
 ystream& ystream::operator<<(const std::u32string_view& msg) {
-  this->operator<<(char_enc::utf32);
   this->print(msg);
   return *this;
 }
 
 ystream& ystream::operator<<(const std::wstring_view& msg) {
+#if defined(_WIN32) || defined(_WIN64)
+  this->operator<<(char_enc::utf16);
+#else
+  this->operator<<(char_enc::utf32);
+#endif
   this->print(msg);
   return *this;
 }
@@ -116,24 +121,24 @@ void ystream::print(const std::string_view& msg, character_encoding enc) {
   this->append_message(msg, enc);
 }
 void ystream::println(const std::string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::ascii);
 }
 
 void ystream::println(const std::u16string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::utf16);
 }
 void ystream::println(const std::u32string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::utf32);
 }
 
 void ystream::print(const std::string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::ascii);
 }
 void ystream::print(const std::u16string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::utf16);
 }
 void ystream::print(const std::u32string_view& msg) {
-  this->append_message(msg, char_enc::codepage1252);
+  this->append_message(msg, char_enc::utf32);
 }
 void ystream::println(const std::wstring_view& msg) {
   wchar_string temp;

@@ -55,6 +55,34 @@ TEST(Logger, ASCIIStreamInterface) {
   manager.flush();
 }
 
+TEST(Logger, ASCIIStreamInterface) {
+  yalog::yal_manager manager{};
+  sink_mock mock_obj{};
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello1\n")));
+  manager().debug().println("Hello1");
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello2\n")));
+  manager().warn().println("Hello2");
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello3\n")));
+  manager().error().println("Hello3");
+
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello4\n")));
+  manager().debug().print("Hello4\n");
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello5\n")));
+  manager().warn().print("Hello5\n");
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello6\n")));
+  manager().error().print("Hello6\n");
+
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello7\n")));
+  manager().debug() << "Hello7\n";
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello8\n")));
+  manager().warn() << "Hello8\n";
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello9\n")));
+  manager().error() << "Hello9\n";
+  manager.flush();
+}
+
 TEST(Logger, U8StreamInterface) {
   yalog::yal_manager manager{};
   sink_mock mock_obj{};
