@@ -9,4 +9,4 @@
 #else
 #define EXPORT_YAL_API
 #endif
-#endif //_yal_export_h_INClude
+#endif  //_yal_export_h_INClude

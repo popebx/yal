@@ -1,13 +1,14 @@
 #ifndef safe_queue_h_INClude
 #define safe_queue_h_INClude
+#include <yal/log_level.h>
+#include <yal/sink.h>
+#include <atomic>
 #include <mutex>
 #include <queue>
 #include <thread>
-#include <yal/sink.h>
+#include <yal/log_message.hpp>
 
 namespace yalog {
-
-
 
 /**
  * @brief Simple Thread safe Queue implementation for communication between
@@ -17,38 +18,24 @@ namespace yalog {
  *
  */
 class sync_sink_queue {
+ public:
+  sync_sink_queue(yalog::sink&& sink, yalog::log_level lvl);
+  ~sync_sink_queue() noexcept;
+  void push(log_message&& new_msg);
 
-  sync_sink_queue(yalog::sink &sink) : m_sink{sink} {}
-  void push(uint64_t timestamp, std::string_view message, std::thread::id);
+  log_level level() const { return this->m_level; }
+  void flush();
+ private:
+  void consume_log_message();
+  log_message pop();
 
-private:
-  /**
-   * @brief A Log Message, with its message encoded in UTF-8
-   *
-   */
-  struct log_message {
-    uint64_t timestamp;
-    std::string message;
-    std::thread::id thread_id;
-    bool operator==(const log_message &) const;
-    bool operator==(log_message &&) const;
-    bool operator<(const log_message &) const;
-    bool operator<(log_message &&) const;
-  };
-  /**
-   * @brief Consumer writing everything out of the queue into the sink
-   *
-   */
+  std::atomic_bool keep_running = true;
+  std::condition_variable m_notify;
+  std::mutex m_queue_mutex{};
+  yalog::sink& m_sink;
+  const yalog::log_level m_level;
+  std::priority_queue<log_message, std::vector<log_message>, std::greater<log_message>> m_queue{};
   std::thread m_consumer;
-  std::mutex m_queue_mutex;
-  yalog::sink &m_sink;
-
-  std::priority_queue<log_message> m_queue;
 };
-
-
-class sink_queue {
-
-}
-} // namespace yalog
-#endif // safe_queue_h_INClude
+}  // namespace yalog
+#endif  // safe_queue_h_INClude

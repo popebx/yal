@@ -7,8 +7,11 @@ option(BUILD_EXAMPLE "Build Examples" ON)
 option(BUILD_TESTS "Build Tests" ON)
 
 set(${PROJECT_NAME}_src include/yal/yal_export.h include/yal/sink.h 
-                        include/yal/yal.hpp                 src/yal.cpp         
-                        include/yal/yal_singleton.hpp       src/yal_singleton.cpp                                 
+                        include/yal/sink_queue.hpp          src/sink_queue.cpp
+                        include/yal/yal_logger.hpp          src/yal_logger.cpp         
+                        include/yal/yal_manager.hpp         src/yal_manager.cpp                                 
+                        include/yal/yal_stream.hpp          src/yal_stream.cpp
+                        include/yal/yal_logger.hpp          src/yal_logger.cpp
                         include/yal/sinks/console_sink.h    src/sinks/console_sink.cpp
                         include/yal/sinks/debug_sink.h      src/sinks/debug_sink.cpp
 )
@@ -45,7 +48,8 @@ if(MSVC)
         /w14242 /w14254 /w14263 /w14265 /w14287
         /we4289 /w14296 /w14311 /w14545 /w14546
         /w14547 /w14549 /w14555 /w14619 /w14640
-        /w14826 /w14905 /w14906 /w14928 )
+        /w14826 /w14905 /w14906 /w14928 
+        /wd4251)
 endif(MSVC)
 
 include(GNUInstallDirs)
@@ -59,9 +63,12 @@ install(TARGETS ${PROJECT_NAME}
 if(BUILD_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
+    find_library(gmock gmockd REQUIRED)    
+    find_library(gmock_main gmock_maind REQUIRED)    
     add_executable(${PROJECT_NAME}_tests ${${PROJECT_NAME}_tests_src})
     set_target_properties(${PROJECT_NAME}_tests PROPERTIES CXX_STANDARD 17)
-    target_link_libraries(${PROJECT_NAME}_tests PRIVATE ${PROJECT_NAME} GTest::GTest GTest::Main)
+    target_link_libraries(${PROJECT_NAME}_tests PRIVATE ${PROJECT_NAME} GTest::GTest ${gmock})
+    #gtest_discover_tests(${PROJECT_NAME}_tests)
 endif(BUILD_TESTS)
 
 if(BUILD_EXAMPLE)

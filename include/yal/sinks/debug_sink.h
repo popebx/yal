@@ -10,10 +10,9 @@ namespace yalog::sinks {
  *
  */
 class debug_sink final : public sink {
-public:
-  virtual void print(const std::string_view &arg) override;
-  virtual void print(const std::wstring_view &arg) override;
+ public:
+  virtual void print(const yalog::log_message& arg) override;
   virtual ~debug_sink() = default;
 };
-} // namespace yalog::sinks
-#endif //_debug_sink_h_INCLude
+}  // namespace yalog::sinks
+#endif  //_debug_sink_h_INCLude

@@ -1,33 +1,33 @@
 #ifndef yal_stream_h_INClude
 #define yal_stream_h_INClude
-#include <yal/sink_queue.hpp>
 #include <yal/yal_export.h>
+#include <optional>
+#include <yal/sink_queue.hpp>
 
 namespace yalog {
-/**
- * @brief Class representing different types of encoding to be able to convert
- * text to different encoding.
- *
- */
-enum class character_encoding : int {
-  ascii = 7,
-  ansii = 8,
-  codepage1252 = 8,
-  utf8 = 8 * 8,
-  utf16 = 16 * 8,
-  utf32 = 32 * 8,
-};
-using char_enc = character_encoding;
+
 /**
  * @brief Stream ending in a sink, it will issue a log message everytime it
  * reads an newline character.
  *
  */
-class EXPORT_YAL_API logger_stream {
-private:
-  sink_queue &m_sink;
+class EXPORT_YAL_API ystream {
+ private:
+  sync_sink_queue* m_sink = nullptr;
 
-public:
+  std::optional<character_encoding> m_current_encoding;
+  std::vector<uint8_t> m_current_message;
+
+  log_level m_current_level;
+
+  log_message create_new_message();
+  void append_message(const std::string_view& new_message, char_enc encoding);
+  void append_message(const std::u16string_view& new_message, char_enc encoding);
+  void append_message(const std::u32string_view& new_message, char_enc encoding);
+
+ public:
+  ystream() = default;
+  ~ystream();
   /**
    * @brief Construct a new logger stream with a sink.It will emit a log message
    * if the object deconstructs or a newline character is read.
@@ -37,130 +37,89 @@ public:
    *
    * @param sink new sink this logger_stream owns
    */
-  logger_stream(sink_queue &sink) : m_sink{sink} {}
+  ystream(log_level current_level, sync_sink_queue* sink);
 #pragma region stream operators
   /**
    * @brief Writing a Log Message via stream operator. It will emit a log
    * message if the object deconstructs or a newline character is read.
-   * If the current encoding is larger then sizeof(char) it will throw.
-   * (UTF16/32)
+   * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @param msg Log message to write. Assumed encoding is utf-8, until changed.
-   * @return logger_stream& for chaining purpose
+   * @param msg Log message to write. Assuming ANSII for std::string_view until c++20 then u8 will be added hopefully
+   * @return ystream& for chaining purpose
    */
-  logger_stream &operator<<(const std::string_view &msg);
+  ystream& operator<<(const std::string_view& msg);
+  ystream& operator<<(const std::u16string_view& msg);
+  ystream& operator<<(const std::u32string_view& msg);
   /**
-   * @brief Writing a Log message via stream operator. It will emit a log
-   * message if the object is deconstructed or a newline character is read.
-   * If the current encoding is larger then sizeof(wchar_t) it will throw.
+   * @brief Writing a Log Message via stream operator. It will emit a log
+   * message if the object deconstructs or a newline character is read.
+   * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @param msg Log message to write. Its assumed encoding is utf-16, until
-   * changed.
-   * @return logger_stream& for chaining purpose
+   * @param msg Log message to write. Its assumed encoding is utf-16 with windows else utf-32
+   * @return ystream& for chaining purpose
    */
-  logger_stream &operator<<(const std::wstring_view &msg);
+  ystream& operator<<(const std::wstring_view& msg);
   /**
    * @brief Method to change the encoding of the stream operators to a different
-   * encoding. If the encoding is unkown it will throw.
+   * encoding.
+   * If the encoding is changed during Object Lifetime it will throw, unless nothing is written into it!
    *
    * @param new_encoding new encoding to set for the following streaming
    * operators
-   * @return logger_stream& for chaining purpose
+   * @return ystream& for chaining purpose
    */
-  logger_stream &operator<<(character_encoding new_encoding);
+  ystream& operator<<(character_encoding new_encoding);
 #pragma endregion
 #pragma region print char
   /**
    * @brief Prints a Message to the log, will append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called.
+   * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
+   * @param msg Message to print.
    * @param enc Encoding to use, it will throw if the encoding is larger then
    * sizeof(char). For example UTF16/32
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", ansii, 5);
    */
-  template <typename... args>
-  void println(const std::string_view &msg, character_encoding enc,
-               const args &... arguments);
+  void println(const std::string_view& msg, character_encoding enc);
 
   /**
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called.
+   * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
+   * @param msg Message to print.
    * @param enc Encoding to use, it will throw if the encoding is larger then
    * sizeof(char). For example UTF16/32
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", ansii, 5);
+   
    */
-  template <typename... args>
-  void print(const std::string_view &msg, character_encoding enc,
-             const args &... arguments);
+  void print(const std::string_view& msg, character_encoding enc);
 
   /**
    * @brief Prints a Message to the log, will append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
-   * called. Encoding depends on which OS is used: Windows = codepage 1252,
-   * Linux = UTF8
+   * called.
+   * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", 5);
+   * @param msg Message to print.
    */
-  template <typename... args>
-  void println(const std::string_view &msg, const args &... arguments);
+  void println(const std::string_view& msg);
+  void println(const std::u16string_view& msg);
+  void println(const std::u32string_view& msg);
   /**
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called. Encoding depends on which OS is used: Windows = codepage 1252,
    * Linux = UTF8
    *
-   * @tparam args Argument pack for multiple arguments.
    * @param msg Message to print. Style like printf.
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", 5);
    */
-  template <typename... args>
-  void print(const std::string_view &msg, const args &... arguments);
+  void print(const std::string_view& msg);
+  void print(const std::u16string_view& msg);
+  void print(const std::u32string_view& msg);
 #pragma endregion
 #pragma region print wchar
-  /**
-   * @brief Prints a Message to the log. It will append a newline. A new Log
-   * message is emitted if a newline character is read or deconstructor is
-   * called.
-   *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
-   * @param enc Encoding to use, it will throw if the encoding is larger then
-   * sizeof(wchar_t). For example UTF16/32
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", ansii, 5);
-   */
-  template <typename... args>
-  void println(const std::wstring_view &msg, character_encoding enc,
-               const args &... arguments);
-
-  /**
-   * @brief Prints a Message to the log, will NOT append a newline. A new Log
-   * message is emitted if a newline character is read or deconstructor is
-   * called.
-   *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
-   * @param enc Encoding to use, it will throw if the encoding is larger then
-   * sizeof(wchar_t).
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", ansii, 5);
-   */
-  template <typename... args>
-  void print(const std::wstring_view &msg, character_encoding enc,
-             const args &... arguments);
 
   /**
    * @brief Prints a Message to the log, will append a newline. A new Log
@@ -168,29 +127,20 @@ public:
    * called. Encoding depends on which OS is used: Windows = UTF16,
    * Linux = UTF16
    *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", 5);
+   * @param msg Message to print.
    */
-  template <typename... args>
-  void println(const std::wstring_view &msg, const args &... arguments);
+  void println(const std::wstring_view& msg);
   /**
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called. Encoding depends on which OS is used: Windows = UTF16,
    * Linux = UTF16
    *
-   * @tparam args Argument pack for multiple arguments.
-   * @param msg Message to print. Style like printf.
-   * @param arguments Template Pack to pass values to replace printf special
-   * characters. For Example: println("%x", 5);
+   * @param msg Message to print.
    */
-
-  template <typename... args>
-  void print(const std::wstring_view &msg, const args &... arguments);
+  void print(const std::wstring_view& msg);
 #pragma endregion
 };
-} // namespace yalog
+}  // namespace yalog
 
-#endif // yal_stream_h_INClude
+#endif  // yal_stream_h_INClude
