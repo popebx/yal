@@ -1,5 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <cassert>
+#include <string>
 #include <yal/yal_manager.hpp>
 
 class sink_mock : public yalog::sink {
@@ -7,10 +9,68 @@ class sink_mock : public yalog::sink {
   MOCK_METHOD1(print, void(const yalog::log_message&));
 };
 
+MATCHER_P(IsASCIIMessage, n, "") {
+  std::string msg;
+  std::transform(arg.message.begin(), arg.message.end(), std::back_inserter(msg), [](uint8_t c) { return static_cast<char>(c); });
+  return msg == n;
+}
+
+MATCHER_P(IsU8Message, n, "") {
+  std::string msg;
+  std::transform(arg.message.begin(), arg.message.end(), std::back_inserter(msg), [](uint8_t c) { return static_cast<char>(c); });
+  return msg == n;
+}
+
+MATCHER_P(IsU16Message, n, "") {
+  std::u16string msg;
+  assert(arg.message.size() % 2 == 0);
+  for (std::size_t i = 0; i < arg.message.size(); i += 2) {
+    char16_t out;
+    out = arg.message[i] << 8;
+    out |= arg.message[i + 1];
+  }
+  return msg == n;
+}
+
+MATCHER_P(IsU32Message, n, "") {
+  std::u32string msg;
+  assert(arg.message.size() % 4 == 0);
+  for (std::size_t i = 0; i < arg.message.size(); i += 4) {
+    char16_t out;
+    out = arg.message[i] << 24;
+    out |= arg.message[i + 1] << 16;
+    out |= arg.message[i + 2] << 8;
+    out |= arg.message[i + 3];
+  }
+  return msg == n;
+}
+
+MATCHER_P(IsWidecharMessage, n, "") {
+  std::wstring msg;
+#if defined(_WIN32) || defined(_WIN64)
+  assert(arg.message.size() % 2 == 0);
+  for (std::size_t i = 0; i < arg.message.size(); i += 2) {
+    wchar_t out;
+    out = arg.message[i] << 8;
+    out |= arg.message[i + 1];
+  }
+#else
+  assert(arg.message.size() % 4 == 0);
+  for (std::size_t i = 0; i < arg.message.size(); i += 4) {
+    wchar_t out;
+    out = arg.message[i] << 24;
+    out |= arg.message[i + 1] << 16;
+    out |= arg.message[i + 2] << 8;
+    out |= arg.message[i + 3];
+  }
+#endif
+  return msg == n;
+}
+
 TEST(Logger, LogLevelUsage) {
   using namespace std::chrono_literals;
 
-  sink_mock mock_obj{};
+  testing::StrictMock<sink_mock> mock_obj{};
   {
     yalog::yal_manager manager{};
     manager.add_new_logger("mock", mock_obj, yalog::log_level::WARNING);
@@ -19,17 +79,131 @@ TEST(Logger, LogLevelUsage) {
     manager("mock").warn() << "Hello";
     manager("mock").error() << "Hello";
   }
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
+}
+TEST(Logger, WidecharStreamInterface) {
+  yalog::yal_manager manager{};
+  testing::StrictMock<sink_mock> mock_obj{};
+
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello1\n"))).Times(1);
+  manager().debug().println(L"\U0001F4A9Hello1");
+
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello2\n"))).Times(1);
+  manager().warn().println(L"\U0001F4A9Hello2");
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello3\n"))).Times(1);
+  manager().error().println(L"\U0001F4A9Hello3");
+
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello4\n"))).Times(1);
+  manager().debug().print(L"\U0001F4A9Hello4\n");
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello5\n"))).Times(1);
+  manager().warn().print(L"\U0001F4A9Hello5\n");
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello6\n"))).Times(1);
+  manager().error().print(L"\U0001F4A9Hello6\n");
+
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello7\n"))).Times(1);
+  manager().debug() << L"\U0001F4A9Hello7\n";
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello8\n"))).Times(1);
+  manager().warn() << L"\U0001F4A9Hello8\n";
+  EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello9\n"))).Times(1);
+  manager().error() << L"\U0001F4A9Hello9\n";
+  manager.flush();
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
+}
+TEST(Logger, UTF32StreamInterface) {
+  using namespace std::string_literals;
+  yalog::yal_manager manager{};
+  testing::StrictMock<sink_mock> mock_obj{};
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello1\n")));
+  manager().debug().println(U"\U0001F4A9Hello1");
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello2\n")));
+  manager().warn().println(U"\U0001F4A9Hello2");
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello3\n")));
+  manager().error().println(U"\U0001F4A9Hello3");
+
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello4\n")));
+  manager().debug().print(U"\U0001F4A9Hello4\n");
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello5\n")));
+  manager().warn().print(U"\U0001F4A9Hello5\n");
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello6\n")));
+  manager().error().print(U"\U0001F4A9Hello6\n");
+
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello7\n")));
+  manager().debug() << U"\U0001F4A9Hello7\n";
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello8\n")));
+  manager().warn() << U"\U0001F4A9Hello8\n";
+  EXPECT_CALL(mock_obj, print(IsU32Message(U"\U0001F4A9Hello9\n")));
+  manager().error() << U"\U0001F4A9Hello9\n";
+  manager.flush();
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
 }
 
-MATCHER_P(IsASCIIMessage, n, "") {
-  std::string msg;
-  std::transform(arg.message.begin(), arg.message.end(), std::back_inserter(msg), [](uint8_t c) { return static_cast<char>(c); });
-  return msg == n;
+TEST(Logger, UTF16StreamInterface) {
+  using namespace std::string_literals;
+  yalog::yal_manager manager{};
+  testing::StrictMock<sink_mock> mock_obj{};
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello1\n")));
+  manager().debug().println(u"\U0001F4A9Hello1");
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello2\n")));
+  manager().warn().println(u"\U0001F4A9Hello2");
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello3\n")));
+  manager().error().println(u"\U0001F4A9Hello3");
+
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello4\n")));
+  manager().debug().print(u"\U0001F4A9Hello4\n");
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello5\n")));
+  manager().warn().print(u"\U0001F4A9Hello5\n");
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello6\n")));
+  manager().error().print(u"\U0001F4A9Hello6\n");
+
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello7\n")));
+  manager().debug() << u"\U0001F4A9Hello7\n";
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello8\n")));
+  manager().warn() << u"\U0001F4A9Hello8\n";
+  EXPECT_CALL(mock_obj, print(IsU16Message(u"\U0001F4A9Hello9\n")));
+  manager().error() << u"\U0001F4A9Hello9\n";
+  manager.flush();
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
+}
+
+TEST(Logger, UTF8StreamInterface) {
+  using namespace std::string_literals;
+  yalog::yal_manager manager{};
+  testing::StrictMock<sink_mock> mock_obj{};
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello1\n")));
+  manager().debug().println(u8"\U0001F4A9Hello1");
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello2\n")));
+  manager().warn().println(u8"\U0001F4A9Hello2");
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello3\n")));
+  manager().error().println(u8"\U0001F4A9Hello3");
+
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello4\n")));
+  manager().debug().print(u8"\U0001F4A9Hello4\n");
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello5\n")));
+  manager().warn().print(u8"\U0001F4A9Hello5\n");
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello6\n")));
+  manager().error().print(u8"\U0001F4A9Hello6\n");
+
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello7\n")));
+  manager().debug() << u8"\U0001F4A9Hello7\n";
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello8\n")));
+  manager().warn() << u8"\U0001F4A9Hello8\n";
+  EXPECT_CALL(mock_obj, print(IsU8Message(u8"\U0001F4A9Hello9\n")));
+  manager().error() << u8"\U0001F4A9Hello9\n";
+  manager.flush();
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
 }
 
 TEST(Logger, ASCIIStreamInterface) {
   yalog::yal_manager manager{};
-  sink_mock mock_obj{};
+  testing::StrictMock<sink_mock> mock_obj{};
   manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
   manager.set_default_logger("mock");
   EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello1\n")));
@@ -53,135 +227,25 @@ TEST(Logger, ASCIIStreamInterface) {
   EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello9\n")));
   manager().error() << "Hello9\n";
   manager.flush();
-}
-
-TEST(Logger, ASCIIStreamInterface) {
-  yalog::yal_manager manager{};
-  sink_mock mock_obj{};
-  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
-  manager.set_default_logger("mock");
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello1\n")));
-  manager().debug().println("Hello1");
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello2\n")));
-  manager().warn().println("Hello2");
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello3\n")));
-  manager().error().println("Hello3");
-
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello4\n")));
-  manager().debug().print("Hello4\n");
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello5\n")));
-  manager().warn().print("Hello5\n");
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello6\n")));
-  manager().error().print("Hello6\n");
-
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello7\n")));
-  manager().debug() << "Hello7\n";
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello8\n")));
-  manager().warn() << "Hello8\n";
-  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hello9\n")));
-  manager().error() << "Hello9\n";
-  manager.flush();
-}
-
-TEST(Logger, U8StreamInterface) {
-  yalog::yal_manager manager{};
-  sink_mock mock_obj{};
-  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
-  manager.set_default_logger("mock");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello1\n")));
-  manager().debug().println("Hello1");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello2\n")));
-  manager().warn().println("Hello2");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello3\n")));
-  manager().error().println("Hello3");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello4\n")));
-  manager().debug().print("Hello4\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello5\n")));
-  manager().warn().print("Hello5\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello6\n")));
-  manager().error().print("Hello6\n");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello7\n")));
-  manager().debug() << "Hello7\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello8\n")));
-  manager().warn() << "Hello8\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello9\n")));
-  manager().error() << "Hello9\n";
-  manager.flush();
-}
-
-TEST(Logger, U16StreamInterface) {
-  yalog::yal_manager manager{};
-  sink_mock mock_obj{};
-  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
-  manager.set_default_logger("mock");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello1\n")));
-  manager().debug().println("Hello1");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello2\n")));
-  manager().warn().println("Hello2");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello3\n")));
-  manager().error().println("Hello3");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello4\n")));
-  manager().debug().print("Hello4\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello5\n")));
-  manager().warn().print("Hello5\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello6\n")));
-  manager().error().print("Hello6\n");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello7\n")));
-  manager().debug() << "Hello7\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello8\n")));
-  manager().warn() << "Hello8\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello9\n")));
-  manager().error() << "Hello9\n";
-  manager.flush();
-}
-
-TEST(Logger, U32Interface) {
-  yalog::yal_manager manager{};
-  sink_mock mock_obj{};
-  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
-  manager.set_default_logger("mock");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello1\n")));
-  manager().debug().println("Hello1");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello2\n")));
-  manager().warn().println("Hello2");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello3\n")));
-  manager().error().println("Hello3");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello4\n")));
-  manager().debug().print("Hello4\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello5\n")));
-  manager().warn().print("Hello5\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello6\n")));
-  manager().error().print("Hello6\n");
-
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello7\n")));
-  manager().debug() << "Hello7\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello8\n")));
-  manager().warn() << "Hello8\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello9\n")));
-  manager().error() << "Hello9\n";
-  manager.flush();
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
 }
 
 TEST(Logger, OrderedMessages) {
   using namespace std::chrono_literals;
   yalog::yal_manager manager{};
-  sink_mock mock_obj{};
+  testing::StrictMock<sink_mock> mock_obj{};
   manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
   {
     testing::InSequence dummy;
-    EXPECT_CALL(mock_obj, print(IsMessage("1\n")));
+    EXPECT_CALL(mock_obj, print(IsASCIIMessage("1\n")));
     manager("mock").debug().println("1");
-    EXPECT_CALL(mock_obj, print(IsMessage("2\n")));
+    EXPECT_CALL(mock_obj, print(IsASCIIMessage("2\n")));
     manager("mock").warn().println("2");
-    EXPECT_CALL(mock_obj, print(IsMessage("3\n")));
+    EXPECT_CALL(mock_obj, print(IsASCIIMessage("3\n")));
     manager("mock").error().println("3");
     manager.flush("mock");
   }
+  EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
 }
 
 int main(int argc, char** argv) {
