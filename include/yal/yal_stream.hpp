@@ -19,7 +19,7 @@ class EXPORT_YAL_API ystream {
   std::vector<uint8_t> m_current_message;
 
   log_level m_current_level;
-
+  void emit_message(const std::vector<uint8_t>& new_line_pattern);
   log_message create_new_message();
   void append_message(const std::string_view& new_message, char_enc encoding);
   void append_message(const std::u16string_view& new_message, char_enc encoding);

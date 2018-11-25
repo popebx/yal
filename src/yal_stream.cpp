@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <thread>
 #include <yal/yal_stream.hpp>
@@ -15,6 +16,19 @@ using wchar_type = char32_t;
 using wchar_string = std::u32string;
 using wchar_string_view = std::u32string_view;
 #endif
+
+std::vector<uint8_t> u8_new_line{0x0A};
+std::vector<uint8_t> u16_new_line{0x0, 0x0A};
+std::vector<uint8_t> u32_new_line{0x0, 0x0, 0x0, 0x0A};
+
+template <typename T>
+constexpr std::array<uint8_t, sizeof(T)> convert(T input) {
+  std::array<uint8_t, sizeof(T)> result{};
+  for (std::size_t i = 0; i < sizeof(T); i++) {
+    result[sizeof(T) - 1 - i] = static_cast<uint8_t>(input >> i * 8);
+  }
+  return result;
+}
 
 log_message ystream::create_new_message() {
   log_message new_msg;
@@ -42,6 +56,21 @@ ystream::~ystream() {
 }
 
 ystream::ystream(log_level current_level, sync_sink_queue* sink) : m_sink{sink}, m_current_level(current_level) {}
+
+void ystream::emit_message(const std::vector<uint8_t>& new_line_pattern) {
+  bool contains_newline = false;
+  do {
+    auto result = std::search(this->m_current_message.begin(), this->m_current_message.end(), new_line_pattern.begin(), new_line_pattern.end());
+    contains_newline = result != this->m_current_message.end();
+    if (contains_newline) {
+      log_message new_msg = create_new_message();
+      new_msg.message = {this->m_current_message.begin(), result + new_line_pattern.size()};
+      this->m_sink->push(std::move(new_msg));
+      this->m_current_message.erase(this->m_current_message.begin(), result + new_line_pattern.size());
+    }
+  } while (contains_newline);
+}
+
 #pragma region Overload set append_message
 void ystream::append_message(const std::string_view& new_message, char_enc encoding) {
   if (this->m_sink != nullptr) {
@@ -49,19 +78,7 @@ void ystream::append_message(const std::string_view& new_message, char_enc encod
       this->m_current_encoding = encoding;
       std::transform(new_message.begin(), new_message.end(), std::back_inserter(this->m_current_message),
                      [](const char current_char) { return static_cast<uint8_t>(current_char); });
-
-      bool contains_newline = false;
-      do {
-        auto result = std::find_if(this->m_current_message.begin(), this->m_current_message.end(), [](const uint8_t c) { return c == 0xA; });
-        contains_newline = result != this->m_current_message.end();
-        if (contains_newline) {
-          log_message new_msg = create_new_message();
-
-          new_msg.message = {this->m_current_message.begin(), result + 1};
-          this->m_sink->push(std::move(new_msg));
-          this->m_current_message.erase(this->m_current_message.begin(), result + 1);
-        }
-      } while (contains_newline);
+      emit_message(u8_new_line);
     }
   }
 }
@@ -69,6 +86,12 @@ void ystream::append_message(const std::u16string_view& new_message, char_enc en
   if (this->m_sink != nullptr) {
     if (this->m_current_encoding.value_or(encoding) == encoding) {
       this->m_current_encoding = encoding;
+      for (char16_t c : new_message) {
+        for (uint8_t byte : convert(c)) {
+          this->m_current_message.emplace_back(byte);
+        }
+      }
+      emit_message(u16_new_line);
     }
   }
 }
@@ -77,6 +100,12 @@ void ystream::append_message(const std::u32string_view& new_message, char_enc en
   if (this->m_sink != nullptr) {
     if (this->m_current_encoding.value_or(encoding) == encoding) {
       this->m_current_encoding = encoding;
+      for (char32_t c : new_message) {
+        for (uint8_t byte : convert(c)) {
+          this->m_current_message.emplace_back(byte);
+        }
+      }
+      emit_message(u16_new_line);
     }
   }
 }

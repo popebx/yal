@@ -28,6 +28,7 @@ MATCHER_P(IsU16Message, n, "") {
     char16_t out;
     out = arg.message[i] << 8;
     out |= arg.message[i + 1];
+    msg.push_back(out);
   }
   return msg == n;
 }
@@ -36,11 +37,12 @@ MATCHER_P(IsU32Message, n, "") {
   std::u32string msg;
   assert(arg.message.size() % 4 == 0);
   for (std::size_t i = 0; i < arg.message.size(); i += 4) {
-    char16_t out;
+    char32_t out;
     out = arg.message[i] << 24;
     out |= arg.message[i + 1] << 16;
     out |= arg.message[i + 2] << 8;
     out |= arg.message[i + 3];
+    msg.push_back(out);
   }
   return msg == n;
 }
@@ -53,6 +55,7 @@ MATCHER_P(IsWidecharMessage, n, "") {
     wchar_t out;
     out = arg.message[i] << 8;
     out |= arg.message[i + 1];
+    msg.push_back(out);
   }
 #else
   assert(arg.message.size() % 4 == 0);
@@ -87,9 +90,9 @@ TEST(Logger, WidecharStreamInterface) {
 
   manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
   manager.set_default_logger("mock");
+
   EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello1\n"))).Times(1);
   manager().debug().println(L"\U0001F4A9Hello1");
-
   EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello2\n"))).Times(1);
   manager().warn().println(L"\U0001F4A9Hello2");
   EXPECT_CALL(mock_obj, print(IsWidecharMessage(L"\U0001F4A9Hello3\n"))).Times(1);
