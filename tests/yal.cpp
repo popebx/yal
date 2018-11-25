@@ -32,25 +32,25 @@ TEST(Logger, ANSIIStreamInterface) {
   sink_mock mock_obj{};
   manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
   manager.set_default_logger("mock");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello1\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello1\n")));
   manager().debug().println("Hello1");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello2\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello2\n")));
   manager().warn().println("Hello2");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello3\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello3\n")));
   manager().error().println("Hello3");
 
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello4\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello4\n")));
   manager().debug().print("Hello4\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello5\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello5\n")));
   manager().warn().print("Hello5\n");
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello6\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello6\n")));
   manager().error().print("Hello6\n");
 
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello7\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello7\n")));
   manager().debug() << "Hello7\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello8\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello8\n")));
   manager().warn() << "Hello8\n";
-  EXPECT_CALL(mock_obj, print(IsMessage("Hello9\n")));
+  EXPECT_CALL(mock_obj, print(IsAnsiiMessage("Hello9\n")));
   manager().error() << "Hello9\n";
   manager.flush();
 }

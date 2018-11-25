@@ -29,13 +29,10 @@ class EXPORT_YAL_API ystream {
   ystream() = default;
   ~ystream();
   /**
-   * @brief Construct a new logger stream with a sink.It will emit a log message
-   * if the object deconstructs or a newline character is read.
+   * @brief Construct a new stream object
    *
-   * @todo Rethink ownership of a sink
-   * @todo make it private
-   *
-   * @param sink new sink this logger_stream owns
+   * @param current_level log_level used in this stream
+   * @param sink sink to use (non owning reference)
    */
   ystream(log_level current_level, sync_sink_queue* sink);
 #pragma region stream operators
@@ -44,7 +41,7 @@ class EXPORT_YAL_API ystream {
    * message if the object deconstructs or a newline character is read.
    * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @param msg Log message to write. Assuming ANSII for std::string_view until c++20 then u8 will be added hopefully
+   * @param msg Log message to write. Assuming ASCII
    * @return ystream& for chaining purpose
    */
   ystream& operator<<(const std::string_view& msg);
@@ -74,7 +71,7 @@ class EXPORT_YAL_API ystream {
   /**
    * @brief Prints a Message to the log, will append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
-   * called.
+   * called. This Function is only to distinguish between ASCII, ANSII and UTF-8
    * If the encoding is changed during Object Lifetime it will throw!
    *
    * @param msg Message to print.
@@ -86,7 +83,7 @@ class EXPORT_YAL_API ystream {
   /**
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
-   * called.
+   * called. This Function is only to distinguish between ASCII, ANSII and UTF-8
    * If the encoding is changed during Object Lifetime it will throw!
    *
    * @param msg Message to print.
@@ -102,7 +99,7 @@ class EXPORT_YAL_API ystream {
    * called.
    * If the encoding is changed during Object Lifetime it will throw!
    *
-   * @param msg Message to print.
+   * @param msg Message to print. Assumes ANSI
    */
   void println(const std::string_view& msg);
   void println(const std::u16string_view& msg);
@@ -110,10 +107,9 @@ class EXPORT_YAL_API ystream {
   /**
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
-   * called. Encoding depends on which OS is used: Windows = codepage 1252,
-   * Linux = UTF8
+   * called.
    *
-   * @param msg Message to print. Style like printf.
+   * @param msg Message to print. Assumes ANSI
    */
   void print(const std::string_view& msg);
   void print(const std::u16string_view& msg);
@@ -125,7 +121,7 @@ class EXPORT_YAL_API ystream {
    * @brief Prints a Message to the log, will append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called. Encoding depends on which OS is used: Windows = UTF16,
-   * Linux = UTF16
+   * Linux = UTF32
    *
    * @param msg Message to print.
    */
@@ -134,7 +130,7 @@ class EXPORT_YAL_API ystream {
    * @brief Prints a Message to the log, will NOT append a newline. A new Log
    * message is emitted if a newline character is read or deconstructor is
    * called. Encoding depends on which OS is used: Windows = UTF16,
-   * Linux = UTF16
+   * Linux = UTF32
    *
    * @param msg Message to print.
    */

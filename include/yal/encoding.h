@@ -8,7 +8,7 @@ namespace yalog {
  */
 enum class character_encoding : int {
   ascii = 7,
-  ansii = 8,
+  ansi = 8,
   codepage1252 = 8,
   utf8 = 8 * 8,
   utf16 = 16 * 8,
