@@ -60,3 +60,4 @@ I don't have enough experience with Linux. As far as i know Linux uses UTF-8 for
 - Write a gui to parse Logs & filter them
 - With C++20 use std::u8string instead of std::string
 - Expose a C API
+- Being able to tie 2 Sinks
