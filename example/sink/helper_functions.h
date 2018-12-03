@@ -1,7 +1,7 @@
 #ifndef helper_functions_h_INClude
 #define helper_functions_h_INClude
-#include <yal/encoding.h>
-#include <yal/log_level.h>
+#include <yal/encoding.hpp>
+#include <yal/log_level.hpp>
 #include <algorithm>
 #include <string>
 #include <string_view>
@@ -9,18 +9,24 @@
 
 namespace conversion {
 
-std::string as_string(std::vector<uint8_t> vec) {}
+std::string as_string(std::vector<uint8_t> vec) {
+  std::string result;
+  result.reserve(vec.size());
+  std::transform(vec.begin(), vec.end(), std::back_inserter(result), [](const uint8_t c) { return static_cast<char>(c); });
+  return result;
+}
 
 std::u16string as_utf16(std::vector<uint8_t> vec) {}
 
 std::u32string as_utf32(std::vector<uint8_t> vec) {}
 
-std::wstring to_wchar(std::vector<uint8_t> data, yalog::char_enc encoding) {
+std::wstring as_wchar(std::vector<uint8_t> data) {
   std::wstring result;
 #if defined(_WIN32) || defined(_WIN64)
-  auto intermediate = to_utf16(data, encoding);
+  auto intermediate = conversion::as_utf16(data);
   result.reserve(intermediate.size());
 #else
+  throw std::runtime_error("Not implemented!");
 #endif
   std::transform(intermediate.begin(), intermediate.end(), std::back_inserter(result), [](auto c) { return static_cast<wchar_t>(c); });
   return result;

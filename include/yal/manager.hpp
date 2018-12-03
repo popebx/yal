@@ -1,10 +1,10 @@
 #ifndef _yal_singleton_h_INClude
 #define _yal_singleton_h_INClude
-#include <yal/yal_export.h>
+#include <yal/dll_export.h>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
-#include <yal/yal_logger.hpp>
+#include <yal/logger.hpp>
 
 
 namespace yalog {
@@ -56,6 +56,7 @@ class EXPORT_YAL_API yal_manager {
   void set_default_logger(std::string_view name);
   void flush(std::string_view name);
   void flush();
+  void flush_all();
   logger add_new_logger(const std::string_view& name, sink& new_sink, const log_level level);
   logger add_new_logger(const std::string_view& name, sink&& new_sink, const log_level level);
 };

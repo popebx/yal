@@ -6,17 +6,21 @@ option(BUILD_SHARED "Build ${PROJECT_NAME} as Shared Library or Static Library" 
 option(BUILD_EXAMPLE "Build Examples" ON)
 option(BUILD_TESTS "Build Tests" ON)
 
-set(${PROJECT_NAME}_src include/yal/yal_export.h include/yal/sink.h 
+set(${PROJECT_NAME}_src include/yal/dll_export.h include/yal/sink.hpp
                         include/yal/sink_queue.hpp          src/sink_queue.cpp
-                        include/yal/yal_logger.hpp          src/yal_logger.cpp         
-                        include/yal/yal_manager.hpp         src/yal_manager.cpp                                 
-                        include/yal/yal_stream.hpp          src/yal_stream.cpp
-                        include/yal/yal_logger.hpp          src/yal_logger.cpp
-                        include/yal/sinks/console_sink.h    src/sinks/console_sink.cpp
-                        include/yal/sinks/debug_sink.h      src/sinks/debug_sink.cpp
+                        include/yal/logger.hpp              src/logger.cpp         
+                        include/yal/manager.hpp             src/manager.cpp                                 
+                        include/yal/stream.hpp              src/stream.cpp
+                        include/yal/logger.hpp              src/logger.cpp                                                
 )
-set(${PROJECT_NAME}_example_src_singleton example/yal_singleton.cpp)
-set(${PROJECT_NAME}_example_src example/yal.cpp)
+set(${PROJECT_NAME}_example_src_singleton example/yal_singleton.cpp 
+                        example/helper_functions.h
+                        example/sink/console_sink.cpp example/sink/console_sink.h
+)
+set(${PROJECT_NAME}_example_src example/yal.cpp
+                        example/helper_functions.h
+                        example/sink/console_sink.cpp example/sink/console_sink.h
+)
 set(${PROJECT_NAME}_tests_src tests/yal.cpp)
 
 

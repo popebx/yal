@@ -1,7 +1,7 @@
 #include <array>
 #include <chrono>
 #include <thread>
-#include <yal/yal_stream.hpp>
+#include <yal/stream.hpp>
 
 namespace yalog {
 

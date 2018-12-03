@@ -1,12 +1,12 @@
 #ifndef _yal_hpp_INClude__
 #define _yal_hpp_INClude__
-#include <yal/log_level.h>
-#include <yal/yal_export.h>
+#include <yal/log_level.hpp>
+#include <yal/dll_export.h>
 #include <algorithm>
 #include <memory>
 #include <string_view>
 #include <vector>
-#include <yal/yal_stream.hpp>
+#include <yal/stream.hpp>
 
 
 namespace yalog {

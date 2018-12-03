@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <cassert>
 #include <string>
-#include <yal/yal_manager.hpp>
+#include <yal/manager.hpp>
 
 class sink_mock : public yalog::sink {
  public:
@@ -83,6 +83,17 @@ TEST(Logger, LogLevelUsage) {
     manager("mock").error() << "Hello";
   }
   EXPECT_TRUE(::testing::Mock::VerifyAndClear(&mock_obj));
+}
+
+TEST(Logger, MultiLine) {
+  yalog::yal_manager manager{};
+  testing::StrictMock<sink_mock> mock_obj{};
+
+  manager.add_new_logger("mock", mock_obj, yalog::log_level::DEBUG);
+  manager.set_default_logger("mock");
+
+  EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hi\n"))).Times(2);
+  manager().debug().print("Hi\nHi\n");
 }
 TEST(Logger, WidecharStreamInterface) {
   yalog::yal_manager manager{};
@@ -256,5 +267,6 @@ int main(int argc, char** argv) {
   // (and Google Test) before running the tests.
   testing::InitGoogleMock(&argc, argv);
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
+  return result;
 }

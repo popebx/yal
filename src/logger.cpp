@@ -1,4 +1,4 @@
-#include <yal/yal_logger.hpp>
+#include <yal/logger.hpp>
 
 namespace yalog {
 logger::logger(log_level arg, sync_sink_queue* ref_sink) : m_log_level{arg}, current_sink{ref_sink} {}

@@ -1,4 +1,4 @@
-#include <yal/yal_manager.hpp>
+#include <yal/manager.hpp>
 namespace yalog {
 
 logger yal_manager::operator()(std::string_view name) const {
@@ -15,8 +15,14 @@ sync_sink_queue* yal_manager::find(std::string_view name) const {
   return result->second.get();
 }
 
+void yal_manager::flush_all() {
+  for (auto& [key, value] : this->m_logger) {
+    value->flush();
+  }
+}
+
 void yal_manager::flush() {
-  if(this->m_standard_sink != nullptr) {
+  if (this->m_standard_sink != nullptr) {
     this->m_standard_sink->flush();
     return;
   }
@@ -24,7 +30,7 @@ void yal_manager::flush() {
 }
 
 void yal_manager::flush(std::string_view name) {
-  auto * sink = this->find(name);
+  auto* sink = this->find(name);
   sink->flush();
 }
 

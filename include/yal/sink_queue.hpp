@@ -1,7 +1,7 @@
 #ifndef safe_queue_h_INClude
 #define safe_queue_h_INClude
-#include <yal/log_level.h>
-#include <yal/sink.h>
+#include <yal/log_level.hpp>
+#include <yal/sink.hpp>
 #include <atomic>
 #include <mutex>
 #include <queue>

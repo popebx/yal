@@ -1,7 +1,8 @@
 #ifndef yal_stream_h_INClude
 #define yal_stream_h_INClude
-#include <yal/yal_export.h>
+#include <yal/dll_export.h>
 #include <optional>
+#include <yal/encoding.hpp>
 #include <yal/sink_queue.hpp>
 
 namespace yalog {

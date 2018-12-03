@@ -1,7 +1,7 @@
 #ifndef log_message_h_INClude
 #define log_message_h_INClude
-#include <yal/encoding.h>
-#include <yal/log_level.h>
+#include <yal/encoding.hpp>
+#include <yal/log_level.hpp>
 #include <cstdint>
 #include <ctime>
 #include <thread>

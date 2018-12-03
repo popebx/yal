@@ -1,14 +1,13 @@
 #ifndef _console_sink_h_INClude
 #define _console_sink_h_INClude
-#include <yal/sink.h>
-#include <yal/yal_export.h>
+#include <yal/sink.hpp>
+#include <yal/dll_export.h>
 
-namespace yalog::sinks {
 /**
  * @brief Simple Console Error Sink
  *
  */
-class EXPORT_YAL_API console_err : public sink {
+class console_err : public yalog::sink {
  public:
   virtual void print(const yalog::log_message& msg) override;
   virtual ~console_err() = default;
@@ -17,10 +16,9 @@ class EXPORT_YAL_API console_err : public sink {
  * @brief Simple Console Out Sink
  *
  */
-class EXPORT_YAL_API console_out : public sink {
+class console_out : public yalog::sink {
  public:
   virtual void print(const yalog::log_message& msg) override;
   virtual ~console_out() = default;
 };
-}  // namespace yalog::sinks
 #endif  //_console_sink_h_INClude
