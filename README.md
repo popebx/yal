@@ -7,13 +7,13 @@ Another Logging Library implemented in C++ (17 is required)
 I wanted to have a multipurpose Logging Library without having to implement it for every Project on my own. I looked at spdlog but i didn't want to restrict myself to a certain license and be able to choose it on my own. And i have no clue about laws and this type of stuff. Since i like to use different Languages and OS's (?) i wanted to make one i can use in Java / C# etc.
 
 ## Naming and Definition
-###Sink
+### Sink
 Part where the log messages get written to a Webservice/Console/File or whatever you prefer. It gets called by the logging thread.
-###Logger
+### Logger
 Interface to get a stream on a certain logging level.
-###Logger Stream
+### Logger Stream
 Stream Object, can be written to by <<, print(ln). It will emit a new Log message if it encounters a new '\n' character.
-###Logger Manager
+### Logger Manager
 Owns Sinks and creates a stream, which is able to write to it.
 
 ## Design Decisions
