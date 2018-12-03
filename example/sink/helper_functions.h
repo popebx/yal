@@ -1,11 +1,11 @@
 #ifndef helper_functions_h_INClude
 #define helper_functions_h_INClude
-#include <yal/encoding.hpp>
-#include <yal/log_level.hpp>
 #include <algorithm>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <yal/encoding.hpp>
+#include <yal/log_level.hpp>
 
 namespace conversion {
 
@@ -16,9 +16,29 @@ std::string as_string(std::vector<uint8_t> vec) {
   return result;
 }
 
-std::u16string as_utf16(std::vector<uint8_t> vec) {}
+std::u16string as_utf16(std::vector<uint8_t> vec) {
+  std::u16string result;
+  for (std::size_t i = 0; i < result.size(); i += 2) {
+    char16_t out;
+    out = vec.at(i) << 8;
+    out |= vec.at(i + 1);
+    result.push_back(out);
+  }
+  return result;
+}
 
-std::u32string as_utf32(std::vector<uint8_t> vec) {}
+std::u32string as_utf32(std::vector<uint8_t> vec) {
+  std::u32string result;
+  for (std::size_t i = 0; i < vec.size(); i += 4) {
+    char32_t out;
+    out = vec.at(i) << 24;
+    out |= vec.at(i + 1) << 16;
+    out |= vec.at(i + 2) << 8;
+    out |= vec.at(i + 3);
+    result.push_back(out);
+  }
+  return result;
+}
 
 std::wstring as_wchar(std::vector<uint8_t> data) {
   std::wstring result;

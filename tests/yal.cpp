@@ -94,6 +94,7 @@ TEST(Logger, MultiLine) {
 
   EXPECT_CALL(mock_obj, print(IsASCIIMessage("Hi\n"))).Times(2);
   manager().debug().print("Hi\nHi\n");
+  manager.flush_all();
 }
 TEST(Logger, WidecharStreamInterface) {
   yalog::yal_manager manager{};
