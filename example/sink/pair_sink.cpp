@@ -1,8 +1,8 @@
 #include "pair_sink.h"
 
-pair_sink::pair_sink(std::unique_ptr<yalog::sink> first,
+pair_sink::pair_sink(std::unique_ptr<yalog::sink> && first,
                      yalog::log_level first_level,
-                     std::unique_ptr<yalog::sink> second,
+                     std::unique_ptr<yalog::sink> &&second,
                      yalog::log_level second_level) {
 
   this->m_sinks.emplace_back(std::move(first), first_level);

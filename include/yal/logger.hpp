@@ -25,7 +25,7 @@ std::string to_yal(type);
 class EXPORT_YAL_API logger {
  private:
   log_level m_log_level;
-  ystream null_stream{};
+  ystream null_stream{yalog::log_level::DEBUG, nullptr};
   sync_sink_queue* current_sink;
 
  public:

@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <yal/logger.hpp>
 
-
 namespace yalog {
 
 /**
@@ -17,7 +16,7 @@ namespace yalog {
 class EXPORT_YAL_API yal_manager {
  private:
   std::unordered_map<std::string, std::unique_ptr<yalog::sync_sink_queue>> m_logger;
-  yalog::sync_sink_queue* m_standard_sink;
+  yalog::sync_sink_queue* m_standard_sink = nullptr;
 
   sync_sink_queue* find(std::string_view name) const;
 
@@ -57,8 +56,7 @@ class EXPORT_YAL_API yal_manager {
   void flush(std::string_view name);
   void flush();
   void flush_all();
-  logger add_new_logger(const std::string_view& name, sink& new_sink, const log_level level);
-  logger add_new_logger(const std::string_view& name, sink&& new_sink, const log_level level);
+  logger add_new_logger(const std::string_view& name, std::unique_ptr<sink>&& new_sink, const log_level level);
 };
 
 }  // namespace yalog

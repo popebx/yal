@@ -60,7 +60,8 @@ ystream::ystream(log_level current_level, sync_sink_queue* sink) : m_sink{sink},
 void ystream::emit_message(const std::vector<uint8_t>& new_line_pattern) {
   bool contains_newline = false;
   do {
-    auto result = std::search(this->m_current_message.begin(), this->m_current_message.end(), new_line_pattern.begin(), new_line_pattern.end());
+    auto result = std::search(this->m_current_message.begin(), this->m_current_message.end(), new_line_pattern.begin(),
+                              new_line_pattern.end());
     contains_newline = result != this->m_current_message.end();
     if (contains_newline) {
       log_message new_msg = create_new_message();
@@ -172,13 +173,15 @@ void ystream::print(const std::u32string_view& msg) {
 void ystream::println(const std::wstring_view& msg) {
   wchar_string temp;
   temp.reserve(msg.size());
-  std::transform(msg.begin(), msg.end(), std::back_inserter(temp), [](wchar_t c) { return static_cast<wchar_type>(c); });
+  std::transform(msg.begin(), msg.end(), std::back_inserter(temp),
+                 [](wchar_t c) { return static_cast<wchar_type>(c); });
   this->println(temp);
 }
 void ystream::print(const std::wstring_view& msg) {
   wchar_string temp;
   temp.reserve(msg.size());
-  std::transform(msg.begin(), msg.end(), std::back_inserter(temp), [](wchar_t c) { return static_cast<wchar_type>(c); });
+  std::transform(msg.begin(), msg.end(), std::back_inserter(temp),
+                 [](wchar_t c) { return static_cast<wchar_type>(c); });
   this->println(temp);
 }
 }  // namespace yalog

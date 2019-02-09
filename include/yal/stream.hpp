@@ -27,7 +27,7 @@ class EXPORT_YAL_API ystream {
   void append_message(const std::u32string_view& new_message, char_enc encoding);
 
  public:
-  ystream() = default;
+  ystream() = delete;
   ~ystream();
   /**
    * @brief Construct a new stream object

@@ -15,11 +15,11 @@ set(${PROJECT_NAME}_src include/yal/dll_export.h include/yal/sink.hpp
 )
 set(${PROJECT_NAME}_example_src_singleton example/yal_singleton.cpp 
                         example/sink/console_sink.cpp example/sink/console_sink.h
+                        example/sink/pair_sink.cpp example/sink/pair_sink.h
 )
 set(${PROJECT_NAME}_example_src example/yal.cpp
                         example/sink/console_sink.cpp example/sink/console_sink.h
                         example/sink/file_sink.cpp example/sink/file_sink.h
-                        example/sink/pair_sink.cpp example/sink/pair_sink.h
                         example/sink/debug_sink.cpp example/sink/debug_sink.h
 )
 set(${PROJECT_NAME}_tests_src tests/yal.cpp)
@@ -73,7 +73,7 @@ if(BUILD_TESTS)
     add_executable(${PROJECT_NAME}_tests ${${PROJECT_NAME}_tests_src})
     set_target_properties(${PROJECT_NAME}_tests PROPERTIES CXX_STANDARD 17)
     target_link_libraries(${PROJECT_NAME}_tests PRIVATE ${PROJECT_NAME} GTest::GTest ${gmock})
-    #gtest_discover_tests(${PROJECT_NAME}_tests)
+    gtest_discover_tests(${PROJECT_NAME}_tests)
 endif(BUILD_TESTS)
 
 if(BUILD_EXAMPLE)
