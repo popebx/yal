@@ -66,7 +66,7 @@ static std::wstring as_wchar(std::vector<uint8_t> data) {
   return result;
 }
 #pragma region Log Level conversion
-static std::string_view to_ascii(yalog::log_level lvl) {
+static std::string_view as_ascii(yalog::log_level lvl) {
   switch (lvl) {
   case yalog::log_level::DEBUG:
     return "DEBUG";
@@ -77,10 +77,10 @@ static std::string_view to_ascii(yalog::log_level lvl) {
   }
   return "";
 }
-static std::string_view to_ansii(yalog::log_level lvl) { return to_ascii(lvl); }
-static std::string_view to_utf8(yalog::log_level lvl) { return to_ascii(lvl); }
+static std::string_view as_ansii(yalog::log_level lvl) { return as_ascii(lvl); }
+static std::string_view as_utf8(yalog::log_level lvl) { return as_ascii(lvl); }
 
-static std::u16string to_utf16(yalog::log_level lvl) {
+static std::u16string as_utf16(yalog::log_level lvl) {
   using namespace std::string_literals;
   switch (lvl) {
   case yalog::log_level::DEBUG:
@@ -93,7 +93,7 @@ static std::u16string to_utf16(yalog::log_level lvl) {
   return u"";
 }
 
-static std::u32string to_utf32(yalog::log_level lvl) {
+static std::u32string as_utf32(yalog::log_level lvl) {
   using namespace std::string_literals;
   switch (lvl) {
   case yalog::log_level::DEBUG:
@@ -106,7 +106,7 @@ static std::u32string to_utf32(yalog::log_level lvl) {
   return U"";
 }
 
-static std::wstring_view to_wchar(yalog::log_level lvl) {
+static std::wstring_view as_wchar(yalog::log_level lvl) {
   switch (lvl) {
   case yalog::log_level::DEBUG:
     return L"DEBUG";
