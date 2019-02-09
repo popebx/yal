@@ -1,6 +1,10 @@
 #ifndef file_sink_INClude_H
 #define file_sink_INClude_H
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <string_view>
+
 #include <yal/sink.hpp>
 /**
  * @brief File Sink, which implements a rotation and different encodings
@@ -31,9 +35,16 @@ public:
   std::filesystem::path directory() const;
 
 private:
+  bool is_file_size_to_big(std::filesystem::path file);
+  
+  std::filesystem::path next_file();
+  static constexpr std::string_view log_file = "filelog";
+  static constexpr std::string_view file_ending = ".log";
+  int current_file {0};
+  std::ofstream file_output;
   const std::size_t m_max_file_size;
   const yalog::char_enc m_file_encoding;
-  const std::filesystem::path m_directory;
+  std::filesystem::path m_directory;
 };
 
 #endif // file_sink_INClude_H

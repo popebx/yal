@@ -1,7 +1,7 @@
 #ifndef pair_sink_INClude
 #define pair_sink_INClude
 #include <yal/sink.hpp>
-
+#include <utility>
 /**
  * @brief Class to combine Sinks to a single Sink (For example Write Debug
  * message to Console and Warnings also to a File)

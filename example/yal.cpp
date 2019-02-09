@@ -8,6 +8,7 @@ int main() {
   manager.add_new_logger(
       "file", std::make_unique<file_sink>(std::filesystem::path{"log"}, yalog::char_enc::utf8),
       yalog::log_level::WARNING);
+
   manager.set_default_logger("file");
   manager("debug").debug() << u"Hello World";
   manager().warn() << u8"Hi";
