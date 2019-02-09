@@ -2,7 +2,6 @@
 namespace yalog {
 
 logger yal_manager::operator()(std::string_view name) const {
-  // TODO: Move to cpp
   auto* sink = this->find(name);
   return logger{sink->level(), sink};
 }
@@ -26,7 +25,7 @@ void yal_manager::flush() {
     this->m_standard_sink->flush();
     return;
   }
-  throw std::runtime_error("No default Logger set");
+  throw std::logic_error("No default Logger set");
 }
 
 void yal_manager::flush(std::string_view name) {
@@ -38,18 +37,18 @@ logger yal_manager::operator()() const {
   if (this->m_standard_sink != nullptr) {
     return logger{this->m_standard_sink->level(), this->m_standard_sink};
   }
-  throw std::runtime_error("Logger not found");
+  throw std::logic_error("Logger not found");
 }
 void yal_manager::set_default_logger(std::string_view name) {
   this->m_standard_sink = this->find(name);
 }
 logger yal_manager::add_new_logger(const std::string_view& name, sink& new_sink, const log_level level) {
-  this->m_logger.emplace(name, std::move(std::make_unique<yalog::sync_sink_queue>(std::forward<sink&&>(new_sink), level)));
+  this->m_logger.emplace(name,std::make_unique<yalog::sync_sink_queue>(std::forward<sink&&>(new_sink), level));
   return this->operator()(name);
 }
 
 logger yal_manager::add_new_logger(const std::string_view& name, sink&& new_sink, const log_level level) {
-  this->m_logger.emplace(name, std::move(std::make_unique<yalog::sync_sink_queue>(std::forward<sink&&>(new_sink), level)));
+  this->m_logger.emplace(name,std::make_unique<yalog::sync_sink_queue>(std::forward<sink&&>(new_sink), level));
   return this->operator()(name);
 }
 }  // namespace yalog
