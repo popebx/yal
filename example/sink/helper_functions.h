@@ -22,15 +22,15 @@ static std::string format_string(std::string_view str, param &&... parameters) {
 
 static std::string as_string(std::vector<uint8_t> vec) {
   std::string result;
-  result.reserve(vec.size());
-  std::transform(vec.begin(), vec.end(), std::back_inserter(result),
+  result.resize(vec.size());
+  std::transform(vec.begin(), vec.end(), result.begin(),
                  [](const uint8_t c) { return static_cast<char>(c); });
   return result;
 }
 
 static std::u16string as_utf16(std::vector<uint8_t> vec) {
   std::u16string result;
-  for (std::size_t i = 0; i < result.size(); i += 2) {
+  for (std::size_t i = 0; i <vec.size(); i += 2) {
     char16_t out;
     out = vec.at(i) << 8;
     out |= vec.at(i + 1);
@@ -56,12 +56,11 @@ static std::wstring as_wchar(std::vector<uint8_t> data) {
   std::wstring result;
 #if defined(_WIN32) || defined(_WIN64)
   auto intermediate = conversion::as_utf16(data);
-  result.reserve(intermediate.size());
+  result.resize(intermediate.size());
 #else
   throw std::runtime_error("Not implemented!");
 #endif
-  std::transform(intermediate.begin(), intermediate.end(),
-                 std::back_inserter(result),
+  std::transform(intermediate.begin(), intermediate.end(), result.begin(),
                  [](auto c) { return static_cast<wchar_t>(c); });
   return result;
 }
