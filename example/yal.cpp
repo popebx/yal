@@ -9,7 +9,7 @@ int main() {
       "file", file_sink{std::filesystem::path{"log"}, yalog::char_enc::utf8},
       yalog::log_level::WARNING);
   manager.set_default_logger("file");
-  manager("debug").debug() << u8"Hello World";
+  manager("debug").debug() << u"Hello World";
   manager().warn() << u8"Hi";
   return 0;
 }

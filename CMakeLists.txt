@@ -14,13 +14,12 @@ set(${PROJECT_NAME}_src include/yal/dll_export.h include/yal/sink.hpp
                         include/yal/logger.hpp              src/logger.cpp                                                
 )
 set(${PROJECT_NAME}_example_src_singleton example/yal_singleton.cpp 
-                        example/helper_functions.h
                         example/sink/console_sink.cpp example/sink/console_sink.h
 )
 set(${PROJECT_NAME}_example_src example/yal.cpp
-                        example/helper_functions.h
                         example/sink/console_sink.cpp example/sink/console_sink.h
                         example/sink/file_sink.cpp example/sink/file_sink.h
+                        example/sink/pair_sink.cpp example/sink/pair_sink.h
                         example/sink/debug_sink.cpp example/sink/debug_sink.h
 )
 set(${PROJECT_NAME}_tests_src tests/yal.cpp)

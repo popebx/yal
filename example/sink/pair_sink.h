@@ -8,13 +8,19 @@
  * @todo Make it a tuple maybe
  */
 class pair_sink : public yalog::sink {
-  pair_sink(std::unique_ptr<yalog::sink> one, std::unique_ptr<yalog::sink> two);
+public:
+  struct sink_data {
+    std::unique_ptr<yalog::sink> sink;
+    yalog::log_level lvl;
+  };
+  template <typename... params> pair_sink(params &&...) {}
+  pair_sink(std::unique_ptr<yalog::sink> first, yalog::log_level first_level,
+            std::unique_ptr<yalog::sink> second, yalog::log_level second_level);
   virtual void print(const yalog::log_message &message) override;
   virtual ~pair_sink() = default;
 
 private:
-  std::unique_ptr<yalog::sink> m_first;
-  std::unique_ptr<yalog::sink> m_second;
+  std::vector<sink_data> m_sinks;
 };
 
 #endif // pair_sink_INClude
