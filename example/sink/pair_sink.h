@@ -9,11 +9,7 @@
  */
 class pair_sink : public yalog::sink {
 public:
-  struct sink_data {
-    std::unique_ptr<yalog::sink> sink;
-    yalog::log_level lvl;
-  };
-  template <typename... params> pair_sink(params &&...) {}
+  using sink_data = std::pair<std::unique_ptr<yalog::sink>, yalog::log_level>;
   pair_sink(std::unique_ptr<yalog::sink> first, yalog::log_level first_level,
             std::unique_ptr<yalog::sink> second, yalog::log_level second_level);
   virtual void print(const yalog::log_message &message) override;
